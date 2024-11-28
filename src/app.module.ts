@@ -1,17 +1,39 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 import { UsersModule } from './users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm'
+import configuration from './config/configuration';
+import databaseConfig from './config/databaseConfig';
 
-const ENV = process.env.NODE_ENV
+const ENV = process.env.PORT
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: [!ENV ? '.env' : `.env.${ENV}`]
-  }), UsersModule],
+  imports: [
+    UsersModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: [!ENV ? '.env' : `.env.${ENV}`],
+      load: [configuration, databaseConfig]
+    }),
+    TypeOrmModule.forRootAsync(
+      {
+        imports: [ConfigModule],
+        inject: [ConfigService],
+        useFactory: (configService: ConfigService) => ({
+          type: 'mysql',
+          autoLoadEntities: true,
+          synchronize: true,
+          port: configService.get("database.port"),
+          username: configService.get("database.username"),
+          password: configService.get("database.password"),
+          database: configService.get("database.name")
+        })
+      }
+    )],
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule { }
