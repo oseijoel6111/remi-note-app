@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { AuthModule } from './auth/auth.module';
 import configuration from './config/configuration';
 import databaseConfig from './config/databaseConfig';
 
@@ -31,7 +32,8 @@ const ENV = process.env.PORT
           database: configService.get("database.name")
         })
       }
-    )],
+    ),
+    AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
